@@ -1,4 +1,3 @@
-import oracle.jdbc.OracleConnection;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.*;
 
@@ -6,23 +5,28 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.concurrent.Executors;
 
+import static oracle.jdbc.OracleConnection.*;
+
+/**
+ * This test requires running Oracle instance.
+ */
 public class TomcatJdbcPoolTest extends BaseTest {
 
     protected DataSource ds;
 
     /**
-     * This timeout doesn't work
+     * This method doesn't work. It blocks on borrowConnection(0, null, null) in
+     * {@link org.apache.tomcat.jdbc.pool.ConnectionPool#init(org.apache.tomcat.jdbc.pool.PoolConfiguration)}
      */
     @Ignore
     @Test(expected = SQLRecoverableException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        nc = netcatListen(port);
-        ds = createDataSource("localhost");
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        ds = createDataSource(host);
 
         // Implementation just sets pool's maxWait
-        ds.setLoginTimeout(2);
+        ds.setLoginTimeout(timeout);
 
-        // blocks on borrowConnection(0, null, null) in {@link org.apache.tomcat.jdbc.pool.ConnectionPool#init(org.apache.tomcat.jdbc.pool.PoolConfiguration)}
         con = ds.getConnection();
     }
 
@@ -31,9 +35,10 @@ public class TomcatJdbcPoolTest extends BaseTest {
      */
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        nc = netcatListen(port);
-        ds = createDataSource("localhost");
-        ds.setConnectionProperties(OracleConnection.CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT + "=2000");
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        ds = createDataSource(host);
+
+        ds.setConnectionProperties(CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT + "=" + String.valueOf(timeout * 1000));
 
         con = ds.getConnection();
     }
@@ -45,11 +50,15 @@ public class TomcatJdbcPoolTest extends BaseTest {
     public void testConnectionNetworkTimeout() throws Exception {
         ds = createDataSource(host);
 
-        con = ds.getConnection();
+        try {
+            con = ds.getConnection();
+        } catch (SQLRecoverableException e) {
+            log.error(e.getMessage());
+        }
         assertNotNull(con);
-        con.setNetworkTimeout(Executors.newSingleThreadExecutor(), 2000);
+        con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
-        disableRoute(host);
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
     }
 
@@ -59,12 +68,16 @@ public class TomcatJdbcPoolTest extends BaseTest {
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinReadTimeout() throws Exception {
         ds = createDataSource(host);
-        ds.setConnectionProperties(OracleConnection.CONNECTION_PROPERTY_THIN_READ_TIMEOUT + "=2000");
+        ds.setConnectionProperties(CONNECTION_PROPERTY_THIN_READ_TIMEOUT + "=" + String.valueOf(timeout * 1000));
 
-        con = ds.getConnection();
+        try {
+            con = ds.getConnection();
+        } catch (SQLRecoverableException e) {
+            log.error(e.getMessage());
+        }
         assertNotNull(con);
 
-        disableRoute(host);
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
     }
 
