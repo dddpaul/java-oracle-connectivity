@@ -1,4 +1,3 @@
-import oracle.jdbc.OracleConnection;
 import oracle.jdbc.pool.OracleDataSource;
 import org.junit.*;
 
@@ -7,6 +6,11 @@ import java.sql.SQLRecoverableException;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 
+import static oracle.jdbc.OracleConnection.*;
+
+/**
+ * This test requires running Oracle instance.
+ */
 public class OracleDataSourceTest extends BaseTest {
 
     private OracleDataSource ds;
@@ -17,10 +21,9 @@ public class OracleDataSourceTest extends BaseTest {
     @Test(expected = SQLRecoverableException.class)
     public void testDataSourceLoginTimeout() throws Exception {
         IpTables.addTcpRule(port, IpTables.Target.DROP);
-        //bane = Bane.neverRespond(port);
         ds = createDataSource(host);
 
-        ds.setLoginTimeout(2);
+        ds.setLoginTimeout(timeout);
 
         con = ds.getConnection();
     }
@@ -31,11 +34,10 @@ public class OracleDataSourceTest extends BaseTest {
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
         IpTables.addTcpRule(port, IpTables.Target.DROP);
-        //bane = Bane.neverRespond(port);
         ds = createDataSource(host);
 
         Properties properties = new Properties();
-        properties.setProperty(OracleConnection.CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT, "2000");
+        properties.setProperty(CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT, String.valueOf(timeout * 1000));
         ds.setConnectionProperties(properties);
 
         con = ds.getConnection();
@@ -48,9 +50,13 @@ public class OracleDataSourceTest extends BaseTest {
     public void testConnectionNetworkTimeout() throws Exception {
         ds = createDataSource(host);
 
-        con = ds.getConnection();
+        try {
+            con = ds.getConnection();
+        } catch (SQLRecoverableException e) {
+            log.error(e.getMessage());
+        }
         assertNotNull(con);
-        con.setNetworkTimeout(Executors.newSingleThreadExecutor(), 2000);
+        con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
         IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
@@ -64,10 +70,14 @@ public class OracleDataSourceTest extends BaseTest {
         ds = createDataSource(host);
 
         Properties properties = new Properties();
-        properties.setProperty(OracleConnection.CONNECTION_PROPERTY_THIN_READ_TIMEOUT, "2000");
+        properties.setProperty(CONNECTION_PROPERTY_THIN_READ_TIMEOUT, String.valueOf(timeout * 1000));
         ds.setConnectionProperties(properties);
 
-        con = ds.getConnection();
+        try {
+            con = ds.getConnection();
+        } catch (SQLRecoverableException e) {
+            log.error(e.getMessage());
+        }
         assertNotNull(con);
 
         IpTables.addTcpRule(port, IpTables.Target.DROP);
