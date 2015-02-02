@@ -10,6 +10,10 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -25,7 +29,7 @@ public class BaseTest extends Assert {
     private static ExecutorService executor;
 
     protected Connection con;
-    protected Process nc;
+    protected Process nc, bane;
     protected Future<Socket> future;
 
     @BeforeClass
@@ -35,20 +39,15 @@ public class BaseTest extends Assert {
 
     @Before
     public void setUp() throws Exception {
-        enableRoute(host);
     }
 
     @After
     public void tearDown() throws Exception {
-        enableRoute(host);
-        if (future != null) {
-            try {
-                future.get(1, TimeUnit.SECONDS).close();
-            } catch (TimeoutException e) {
-                future.cancel(true);
-            }
-            future = null;
+        if (bane != null) {
+            bane.destroy();
+            bane = null;
         }
+        IpTables.removeTcpRule(port, IpTables.Target.DROP);
     }
 
     public void executeQuery(Connection con) throws SQLException {

@@ -14,10 +14,11 @@ public class OracleDataSourceTest extends BaseTest {
     /**
      * This timeout works for login (connect) only
      */
-    @Test
+    @Test(expected = SQLRecoverableException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        future = listen(port);
-        ds = createDataSource("localhost");
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        //bane = Bane.neverRespond(port);
+        ds = createDataSource(host);
 
         ds.setLoginTimeout(2);
 
@@ -27,11 +28,11 @@ public class OracleDataSourceTest extends BaseTest {
     /**
      * This timeout works for login (connect) only
      */
-    @Ignore
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        future = listen(port);
-        ds = createDataSource("localhost");
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        //bane = Bane.neverRespond(port);
+        ds = createDataSource(host);
 
         Properties properties = new Properties();
         properties.setProperty(OracleConnection.CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT, "2000");
@@ -43,7 +44,6 @@ public class OracleDataSourceTest extends BaseTest {
     /**
      * This timeout works for every query (by not for login)
      */
-    @Ignore
     @Test(expected = SQLRecoverableException.class)
     public void testConnectionNetworkTimeout() throws Exception {
         ds = createDataSource(host);
@@ -52,14 +52,13 @@ public class OracleDataSourceTest extends BaseTest {
         assertNotNull(con);
         con.setNetworkTimeout(Executors.newSingleThreadExecutor(), 2000);
 
-        disableRoute(host);
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
     }
 
     /**
      * This timeout works for every query (by not for login)
      */
-    @Ignore
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinReadTimeout() throws Exception {
         ds = createDataSource(host);
@@ -71,7 +70,7 @@ public class OracleDataSourceTest extends BaseTest {
         con = ds.getConnection();
         assertNotNull(con);
 
-        disableRoute(host);
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
     }
 
