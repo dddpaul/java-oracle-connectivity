@@ -1,37 +1,26 @@
-import oracle.jdbc.OracleConnection;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.concurrent.Executors;
 
+import static oracle.jdbc.OracleConnection.*;
+
+/**
+ * This test requires running Oracle instance.
+ */
 public class CommonsDbcpTest extends BaseTest {
 
     private BasicDataSource ds;
 
-    @Before
-    public void setUp() throws Exception {
-        enableRoute(host);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (nc != null) {
-            nc.destroy();
-            nc = null;
-        }
-    }
-
     /**
-     * This timeout doesn't work because {@link javax.sql.CommonDataSource#setLoginTimeout(int)} is not implemented
+     * This doesn't work because {@link javax.sql.CommonDataSource#setLoginTimeout(int)} is not implemented
      */
     @Test(expected = UnsupportedOperationException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        nc = netcatListen(port);
-        ds = createDataSource("localhost");
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        ds = createDataSource(host);
 
         ds.setLoginTimeout(2);
 
@@ -43,9 +32,10 @@ public class CommonsDbcpTest extends BaseTest {
      */
     @Test(expected = SQLException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        nc = netcatListen(port);
-        ds = createDataSource("localhost");
-        ds.setConnectionProperties(OracleConnection.CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT + "=2000");
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        ds = createDataSource(host);
+
+        ds.setConnectionProperties(CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT + "=" + String.valueOf(timeout * 1000));
 
         con = ds.getConnection();
     }
@@ -57,11 +47,15 @@ public class CommonsDbcpTest extends BaseTest {
     public void testConnectionNetworkTimeout() throws Exception {
         ds = createDataSource(host);
 
-        con = ds.getConnection();
+        try {
+            con = ds.getConnection();
+        } catch (SQLRecoverableException e) {
+            log.error(e.getMessage());
+        }
         assertNotNull(con);
-        con.setNetworkTimeout(Executors.newSingleThreadExecutor(), 2000);
+        con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
-        disableRoute(host);
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
     }
 
@@ -71,12 +65,16 @@ public class CommonsDbcpTest extends BaseTest {
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinReadTimeout() throws Exception {
         ds = createDataSource(host);
-        ds.setConnectionProperties(OracleConnection.CONNECTION_PROPERTY_THIN_READ_TIMEOUT + "=2000");
+        ds.setConnectionProperties(CONNECTION_PROPERTY_THIN_READ_TIMEOUT + "=" + String.valueOf(timeout * 1000));
 
-        con = ds.getConnection();
+        try {
+            con = ds.getConnection();
+        } catch (SQLRecoverableException e) {
+            log.error(e.getMessage());
+        }
         assertNotNull(con);
 
-        disableRoute(host);
+        IpTables.addTcpRule(port, IpTables.Target.DROP);
         executeQuery(con);
     }
 
