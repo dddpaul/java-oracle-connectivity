@@ -24,7 +24,7 @@ public class OracleUniversalPoolTest extends BaseTest {
     @Ignore
     @Test(expected = SQLRecoverableException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         // Seems like implementation does nothing
@@ -38,7 +38,7 @@ public class OracleUniversalPoolTest extends BaseTest {
      */
     @Test(expected = SQLException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         Properties props = new Properties();
@@ -63,7 +63,7 @@ public class OracleUniversalPoolTest extends BaseTest {
         assertNotNull(con);
         con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 
@@ -85,7 +85,7 @@ public class OracleUniversalPoolTest extends BaseTest {
         }
         assertNotNull(con);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 

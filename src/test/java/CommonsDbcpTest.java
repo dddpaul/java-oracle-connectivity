@@ -19,7 +19,7 @@ public class CommonsDbcpTest extends BaseTest {
      */
     @Test(expected = UnsupportedOperationException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         ds.setLoginTimeout(2);
@@ -32,7 +32,7 @@ public class CommonsDbcpTest extends BaseTest {
      */
     @Test(expected = SQLException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         ds.setConnectionProperties(CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT + "=" + String.valueOf(timeout * 1000));
@@ -55,7 +55,7 @@ public class CommonsDbcpTest extends BaseTest {
         assertNotNull(con);
         con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 
@@ -74,7 +74,7 @@ public class CommonsDbcpTest extends BaseTest {
         }
         assertNotNull(con);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 

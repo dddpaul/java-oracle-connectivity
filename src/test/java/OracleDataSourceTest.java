@@ -20,7 +20,7 @@ public class OracleDataSourceTest extends BaseTest {
      */
     @Test(expected = SQLRecoverableException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         ds.setLoginTimeout(timeout);
@@ -33,7 +33,7 @@ public class OracleDataSourceTest extends BaseTest {
      */
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         Properties properties = new Properties();
@@ -58,7 +58,7 @@ public class OracleDataSourceTest extends BaseTest {
         assertNotNull(con);
         con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 
@@ -80,7 +80,7 @@ public class OracleDataSourceTest extends BaseTest {
         }
         assertNotNull(con);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 

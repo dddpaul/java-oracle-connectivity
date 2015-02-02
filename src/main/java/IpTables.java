@@ -16,6 +16,20 @@ public class IpTables {
         UDP
     }
 
+    public static void drop(int port) throws IOException {
+        addTcpRule(port, Target.DROP);
+    }
+
+    public static void reject(int port) throws IOException {
+        addTcpRule(port, Target.REJECT);
+    }
+
+    public static void allow(int port) throws IOException {
+        for (Target target : Target.values()) {
+            removeTcpRule(port, target);
+        }
+    }
+
     public static void addTcpRule(int port, Target target) throws IOException {
         addRule(Proto.TCP, port, target);
     }

@@ -21,7 +21,7 @@ public class TomcatJdbcPoolTest extends BaseTest {
     @Ignore
     @Test(expected = SQLRecoverableException.class)
     public void testDataSourceLoginTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         // Implementation just sets pool's maxWait
@@ -35,7 +35,7 @@ public class TomcatJdbcPoolTest extends BaseTest {
      */
     @Test(expected = SQLRecoverableException.class)
     public void testDriverThinNetConnectTimeout() throws Exception {
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         ds = createDataSource(host);
 
         ds.setConnectionProperties(CONNECTION_PROPERTY_THIN_NET_CONNECT_TIMEOUT + "=" + String.valueOf(timeout * 1000));
@@ -58,7 +58,7 @@ public class TomcatJdbcPoolTest extends BaseTest {
         assertNotNull(con);
         con.setNetworkTimeout(Executors.newSingleThreadExecutor(), timeout * 1000);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 
@@ -77,7 +77,7 @@ public class TomcatJdbcPoolTest extends BaseTest {
         }
         assertNotNull(con);
 
-        IpTables.addTcpRule(port, IpTables.Target.DROP);
+        IpTables.drop(port);
         executeQuery(con);
     }
 
