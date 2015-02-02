@@ -15,6 +15,16 @@ public class TomcatJdbcPoolTest extends BaseTest {
     protected DataSource ds;
 
     /**
+     * Fail fast because of ICMP Destination Unreachable
+     */
+    @Test(expected = SQLRecoverableException.class)
+    public void testDataSourceLoginWithReject() throws Exception {
+        IpTables.reject(port);
+        ds = createDataSource(host);
+        con = ds.getConnection();
+    }
+
+    /**
      * This method doesn't work. It blocks on borrowConnection(0, null, null) in
      * {@link org.apache.tomcat.jdbc.pool.ConnectionPool#init(org.apache.tomcat.jdbc.pool.PoolConfiguration)}
      */

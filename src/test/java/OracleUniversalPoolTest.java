@@ -1,4 +1,3 @@
-import oracle.jdbc.OracleConnection;
 import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
 import org.junit.*;
@@ -16,6 +15,16 @@ import static oracle.jdbc.OracleConnection.*;
 public class OracleUniversalPoolTest extends BaseTest {
 
     private PoolDataSource ds;
+
+    /**
+     * Fail fast because of ICMP Destination Unreachable
+     */
+    @Test(expected = SQLException.class)
+    public void testDataSourceLoginWithReject() throws Exception {
+        IpTables.reject(port);
+        ds = createDataSource(host);
+        con = ds.getConnection();
+    }
 
     /**
      * This method doesn't work. It blocks in

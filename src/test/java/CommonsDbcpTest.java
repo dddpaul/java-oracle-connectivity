@@ -15,6 +15,16 @@ public class CommonsDbcpTest extends BaseTest {
     private BasicDataSource ds;
 
     /**
+     * Fail fast because of ICMP Destination Unreachable
+     */
+    @Test(expected = SQLException.class)
+    public void testDataSourceLoginWithReject() throws Exception {
+        IpTables.reject(port);
+        ds = createDataSource(host);
+        con = ds.getConnection();
+    }
+
+    /**
      * This doesn't work because {@link javax.sql.CommonDataSource#setLoginTimeout(int)} is not implemented
      */
     @Test(expected = UnsupportedOperationException.class)

@@ -16,6 +16,16 @@ public class OracleDataSourceTest extends BaseTest {
     private OracleDataSource ds;
 
     /**
+     * Fail fast because of ICMP Destination Unreachable
+     */
+    @Test(expected = SQLRecoverableException.class)
+    public void testDataSourceLoginWithReject() throws Exception {
+        IpTables.reject(port);
+        ds = createDataSource(host);
+        con = ds.getConnection();
+    }
+
+    /**
      * This timeout works for login (connect) only
      */
     @Test(expected = SQLRecoverableException.class)
